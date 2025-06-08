@@ -156,7 +156,7 @@ def go_home():
     st.session_state.show_random_recipes = False
     if 'selected_recipe' in st.session_state:
         del st.session_state.selected_recipe
-    st.experimental_rerun()
+    st.rerun()
 
 # ========================================================================
 # Inicialização do aplicativo

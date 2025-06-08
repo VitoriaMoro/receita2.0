@@ -7,7 +7,7 @@ from deep_translator import GoogleTranslator  # Adicionado para tradução
 # Configuração do tradutor
 translator_pt_en = lambda text: GoogleTranslator(source='pt', target='en').translate(text)
 translator_en_pt = lambda text: GoogleTranslator(source='en', target='pt').translate(text)
-
+session = requests.Session()
 # ========================================================================
 # Funções auxiliares
 # ========================================================================
@@ -40,7 +40,7 @@ def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes
     recipe_ids = set()
     for ingredient in translated_ingredients:
         try:
-            response = requests.get(
+            response = session.get(
                 f"https://www.themealdb.com/api/json/v1/1/filter.php?i={ingredient}"
             )
             data = response.json()
@@ -56,7 +56,7 @@ def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes
     recipes = []
     for recipe_id in list(recipe_ids)[:50]:
         try:
-            response = requests.get(
+            response = session.get(
                 f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={recipe_id}"
             )
             recipe_data = response.json()['meals'][0]
@@ -97,7 +97,7 @@ def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes
 # Função para buscar receitas por país
 def get_recipes_by_area(area):
     try:
-        response = requests.get(
+        response = session.get(
             f"https://www.themealdb.com/api/json/v1/1/filter.php?a={area}"
         )
         data = response.json()
@@ -107,7 +107,7 @@ def get_recipes_by_area(area):
         # Obtém detalhes completos e traduz cada receita
         detailed_recipes = []
         for meal in data['meals'][:5]:
-            recipe_response = requests.get(
+            recipe_response = session.get(
                 f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={meal['idMeal']}"
             )
             recipe_data = recipe_response.json()['meals'][0]
@@ -120,7 +120,7 @@ def get_recipes_by_area(area):
 # Função para buscar lista de países (traduzida)
 def get_areas():
     try:
-        response = requests.get(
+        response = session.get(
             "https://www.themealdb.com/api/json/v1/1/list.php?a=list"
         )
         data = response.json()

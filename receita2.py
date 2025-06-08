@@ -97,16 +97,25 @@ def display_recipe(recipe, user_ingredients, is_main=False):
     recipe_data = recipe['data']
     recipe_id = recipe_data['idMeal']
     
-    with st.expander(f"{'🍳' if is_main else '🍲'} {recipe_data['strMeal']}", expanded=is_main):
-        # Exibir imagem da receita
+    # Destacar mais o nome da receita
+    title_html = f"<h3 style='font-size:24px; margin-bottom:10px;'>{recipe_data['strMeal']}</h3>"
+    st.markdown(title_html, unsafe_allow_html=True)
+    
+    with st.expander("", expanded=is_main):
+        # Exibir imagem da receita com tamanho reduzido
         if recipe_data.get('strMealThumb'):
             try:
                 response_img = requests.get(recipe_data['strMealThumb'])
                 img = Image.open(io.BytesIO(response_img.content))
-                st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+                
+                # Reduzir o tamanho da imagem
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    st.image(img, caption=recipe_data['strMeal'], width=300)
             except:
                 st.warning("Não foi possível carregar a imagem da receita")
-        
+
+
         # Informações básicas
         st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
         st.progress(recipe['matches'] / recipe['total'])

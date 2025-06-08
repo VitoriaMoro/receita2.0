@@ -64,7 +64,6 @@ def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes
             }
             recipes.append(recipe_object)
 
-            ### ALTERAÇÃO ###
             # Armazena os dados completos da receita para uso posterior na seção de avaliações
             st.session_state.all_recipes_data[recipe_id] = recipe_object
 
@@ -166,7 +165,6 @@ if 'user_ratings' not in st.session_state:
 if 'show_random_recipes' not in st.session_state:
     st.session_state.show_random_recipes = False
 
-### ALTERAÇÃO ###
 # Novo session_state para armazenar os dados de TODAS as receitas que aparecem
 if 'all_recipes_data' not in st.session_state:
     st.session_state.all_recipes_data = {}
@@ -184,11 +182,31 @@ with col2:
 
 st.markdown("Encontre receitas perfeitas com seus ingredientes ou explore novas culturas!")
 
-# Barra lateral
+# ========================================================================
+# Barra Lateral (Sidebar)
+# ========================================================================
 with st.sidebar:
     if st.button("🏠 Voltar ao Início", use_container_width=True):
         go_home()
 
+    ### ALTERAÇÃO ###
+    # Seção "Descubra por País" movida para o topo.
+    st.header("🌍 Descubra por País")
+    area_list = get_areas()
+    selected_country = st.selectbox("Escolha um país:", area_list, key="country_select")
+
+    if st.button("Mostrar Receitas Típicas"):
+        st.session_state.show_random_recipes = True
+        st.session_state.country_recipes = get_recipes_by_area(selected_country)
+        st.session_state.selected_country = selected_country
+        # Limpa a seleção de receita para não exibir a antiga
+        if 'selected_recipe' in st.session_state:
+            del st.session_state.selected_recipe
+        st.rerun()
+
+    st.markdown("---")
+    
+    # Seção "Receitas Salvas"
     st.header("📚 Receitas Principais Salvas")
     st.caption("Suas últimas receitas pesquisadas")
 
@@ -213,8 +231,7 @@ with st.sidebar:
 
     st.markdown("---")
 
-    ### ALTERAÇÃO ###
-    # Nova Seção: Receitas Avaliadas
+    # Seção: Receitas Avaliadas
     st.header("⭐ Minhas Avaliações")
     if not st.session_state.user_ratings:
         st.info("Você ainda não avaliou nenhuma receita.")
@@ -233,22 +250,6 @@ with st.sidebar:
                         if st.button("Ver", key=f"view_rated_{recipe_id}", use_container_width=True):
                             st.session_state.selected_recipe = recipe_data_obj
                             st.rerun()
-
-
-    st.markdown("---")
-    st.header("🌍 Descubra por País")
-    area_list = get_areas()
-    selected_country = st.selectbox("Escolha um país:", area_list, key="country_select")
-
-    if st.button("Mostrar Receitas Típicas"):
-        st.session_state.show_random_recipes = True
-        st.session_state.country_recipes = get_recipes_by_area(selected_country)
-        st.session_state.selected_country = selected_country
-        # Limpa a seleção de receita para não exibir a antiga
-        if 'selected_recipe' in st.session_state:
-            del st.session_state.selected_recipe
-        st.rerun()
-
 
 # ========================================================================
 # Lógica de Exibição de Conteúdo
@@ -271,7 +272,6 @@ if st.session_state.get('show_random_recipes', False):
                     recipe_data = response.json()['meals'][0]
                     recipe_id = recipe_data['idMeal']
 
-                    ### ALTERAÇÃO ###
                     # Garante que os dados da receita sejam salvos para a seção de avaliações
                     if recipe_id not in st.session_state.all_recipes_data:
                          recipe_ingredients = [recipe_data.get(f'strIngredient{i}', '').strip() for i in range(1, 21) if recipe_data.get(f'strIngredient{i}', '').strip()]
@@ -279,7 +279,6 @@ if st.session_state.get('show_random_recipes', False):
 
 
                     if recipe_data.get('strMealThumb'):
-                        # ... (código da imagem)
                         try:
                             response_img = requests.get(recipe_data['strMealThumb'])
                             img = Image.open(io.BytesIO(response_img.content))
@@ -289,7 +288,6 @@ if st.session_state.get('show_random_recipes', False):
                         except:
                             st.warning("Não foi possível carregar a imagem da receita.")
 
-                    # ... (resto do código para exibir detalhes, ingredientes, etc.)
                     st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
                     st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
 
@@ -323,7 +321,6 @@ elif 'selected_recipe' in st.session_state:
     st.markdown(title_html, unsafe_allow_html=True)
 
     if recipe_data.get('strMealThumb'):
-        # ... (código da imagem)
         try:
             response_img = requests.get(recipe_data['strMealThumb'])
             img = Image.open(io.BytesIO(response_img.content))
@@ -333,7 +330,6 @@ elif 'selected_recipe' in st.session_state:
         except:
             st.warning("Não foi possível carregar a imagem da receita")
 
-    ### ALTERAÇÃO ###
     # Mostra a compatibilidade apenas se a informação estiver disponível
     if 'matches' in recipe and 'total' in recipe and recipe['total'] > 0:
         st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
@@ -350,7 +346,6 @@ elif 'selected_recipe' in st.session_state:
         st.success("Avaliação atualizada com sucesso!")
         st.rerun()
 
-    # ... (resto do código para exibir detalhes, ingredientes, etc.)
     col1, col2 = st.columns(2)
     if recipe_data.get('strSource'):
         col1.markdown(f"🔗 [Receita Original]({recipe_data['strSource']})")

@@ -265,7 +265,7 @@ if st.session_state.get('show_random_recipes', False):
                     if st.button("Salvar Avaliação", key=f"save_{recipe_id}"):
                         st.session_state.user_ratings[recipe_id] = new_rating
                         st.success("Avaliação salva com sucesso!")
-                        st.experimental_rerun()
+                        st.rerun()
                     
                     # Links
                     col1, col2 = st.columns(2)

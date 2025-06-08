@@ -232,9 +232,6 @@ with st.sidebar:
 # ========================================================================
 if st.session_state.get('show_random_recipes', False):
     # Botão Voltar acima da seção
-    if st.button("⬅️ Voltar para a busca principal"):
-        st.session_state.show_random_recipes = False
-        st.rerun()
     
     st.subheader(f"🍜 Receitas Típicas de {st.session_state.selected_country}")
     
@@ -360,10 +357,6 @@ if not st.session_state.get('show_random_recipes', False) and 'selected_recipe' 
 # Mostrar receita selecionada da barra lateral
 # ========================================================================
 if 'selected_recipe' in st.session_state:
-    # Botão Voltar acima da receita
-    if st.button("⬅️ Voltar para a lista de receitas"):
-        del st.session_state.selected_recipe
-        st.rerun()
     
     recipe = st.session_state.selected_recipe
     recipe_data = recipe['data']

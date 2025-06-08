@@ -122,19 +122,6 @@ def display_recipe(recipe, user_ingredients, is_main=False):
         st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
         st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
         
-        # Sistema de avaliação
-        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
-        new_rating = st.slider(
-            "Avalie esta receita:", 
-            1, 5, current_rating,
-            key=f"rate_{recipe_id}_{is_main}"
-        )
-        
-        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
-            st.session_state.user_ratings[recipe_id] = new_rating
-            st.success("Avaliação salva com sucesso!")
-            st.experimental_rerun()
-        
         # Links
         col1, col2 = st.columns(2)
         if recipe_data.get('strSource'):
@@ -151,6 +138,20 @@ def display_recipe(recipe, user_ingredients, is_main=False):
         # Instruções
         st.subheader("👩‍🍳 Instruções:")
         st.write(recipe_data['strInstructions'])
+        
+        # Sistema de avaliação
+        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
+        new_rating = st.slider(
+            "Avalie esta receita:", 
+            1, 5, current_rating,
+            key=f"rate_{recipe_id}_{is_main}"
+        )
+        
+        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
+            st.session_state.user_ratings[recipe_id] = new_rating
+            st.success("Avaliação salva com sucesso!")
+            st.experimental_rerun()
+        
 
 # ========================================================================
 # Inicialização do aplicativo

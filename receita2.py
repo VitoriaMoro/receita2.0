@@ -10,6 +10,10 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# ========================================================================
+# Funções auxiliares
+# ========================================================================
+
 # Função para buscar receitas por ingredientes
 def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes=10):
     recipe_ids = set()
@@ -88,6 +92,61 @@ def get_areas():
     except requests.exceptions.RequestException:
         return ["All"]
 
+# Função para exibir receitas
+def display_recipe(recipe, user_ingredients, is_main=False):
+    recipe_data = recipe['data']
+    recipe_id = recipe_data['idMeal']
+    
+    with st.expander(f"{'🍳' if is_main else '🍲'} {recipe_data['strMeal']}", expanded=is_main):
+        # Exibir imagem da receita
+        if recipe_data.get('strMealThumb'):
+            try:
+                response_img = requests.get(recipe_data['strMealThumb'])
+                img = Image.open(io.BytesIO(response_img.content))
+                st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+            except:
+                st.warning("Não foi possível carregar a imagem da receita")
+        
+        # Informações básicas
+        st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
+        st.progress(recipe['matches'] / recipe['total'])
+        st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
+        st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
+        
+        # Sistema de avaliação
+        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
+        new_rating = st.slider(
+            "Avalie esta receita:", 
+            1, 5, current_rating,
+            key=f"rate_{recipe_id}_{is_main}"
+        )
+        
+        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
+            st.session_state.user_ratings[recipe_id] = new_rating
+            st.success("Avaliação salva com sucesso!")
+            st.experimental_rerun()
+        
+        # Links
+        col1, col2 = st.columns(2)
+        if recipe_data.get('strSource'):
+            col1.markdown(f"🔗 [Receita Original]({recipe_data['strSource']})")
+        if recipe_data.get('strYoutube'):
+            col2.markdown(f"📺 [Vídeo no YouTube]({recipe_data['strYoutube']})")
+        
+        # Ingredientes
+        st.subheader("📋 Ingredientes:")
+        for ing in recipe['ingredients']:
+            match_indicator = "✅" if ing in [i.lower() for i in user_ingredients] else "❌"
+            st.markdown(f"{match_indicator} {ing.capitalize()}")
+        
+        # Instruções
+        st.subheader("👩‍🍳 Instruções:")
+        st.write(recipe_data['strInstructions'])
+
+# ========================================================================
+# Inicialização do aplicativo
+# ========================================================================
+
 # Inicializar estados da sessão
 if 'saved_main_recipes' not in st.session_state:
     st.session_state.saved_main_recipes = []
@@ -157,12 +216,16 @@ if st.session_state.get('show_random_recipes', False):
                         f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={recipe['idMeal']}"
                     )
                     recipe_data = response.json()['meals'][0]
+                    recipe_id = recipe_data['idMeal']
                     
                     # Exibir imagem
                     if recipe_data.get('strMealThumb'):
-                        response_img = requests.get(recipe_data['strMealThumb'])
-                        img = Image.open(io.BytesIO(response_img.content))
-                        st.image(img, caption=recipe_data['strMeal'], use_column_width=True)
+                        try:
+                            response_img = requests.get(recipe_data['strMealThumb'])
+                            img = Image.open(io.BytesIO(response_img.content))
+                            st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+                        except:
+                            st.warning("Não foi possível carregar a imagem da receita")
                     
                     # Informações básicas
                     st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
@@ -181,7 +244,6 @@ if st.session_state.get('show_random_recipes', False):
                     st.write(recipe_data['strInstructions'])
                     
                     # Sistema de avaliação
-                    recipe_id = recipe_data['idMeal']
                     current_rating = st.session_state.user_ratings.get(recipe_id, 0)
                     
                     new_rating = st.slider(
@@ -253,56 +315,6 @@ if st.button("Buscar Receitas") or user_input:
                     display_recipe(recipes[idx], user_ingredients)
 
 # ========================================================================
-# Função para exibir receitas
-# ========================================================================
-def display_recipe(recipe, user_ingredients, is_main=False):
-    recipe_data = recipe['data']
-    recipe_id = recipe_data['idMeal']
-    
-    with st.expander(f"{'🍳' if is_main else '🍲'} {recipe_data['strMeal']}", expanded=is_main):
-        # Exibir imagem da receita
-        if recipe_data.get('strMealThumb'):
-            response_img = requests.get(recipe_data['strMealThumb'])
-            img = Image.open(io.BytesIO(response_img.content))
-            st.image(img, caption=recipe_data['strMeal'], use_column_width=True)
-        
-        # Informações básicas
-        st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
-        st.progress(recipe['matches'] / recipe['total'])
-        st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
-        st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
-        
-        # Sistema de avaliação
-        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
-        new_rating = st.slider(
-            "Avalie esta receita:", 
-            1, 5, current_rating,
-            key=f"rate_{recipe_id}"
-        )
-        
-        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}"):
-            st.session_state.user_ratings[recipe_id] = new_rating
-            st.success("Avaliação salva com sucesso!")
-            st.experimental_rerun()
-        
-        # Links
-        col1, col2 = st.columns(2)
-        if recipe_data.get('strSource'):
-            col1.markdown(f"🔗 [Receita Original]({recipe_data['strSource']})")
-        if recipe_data.get('strYoutube'):
-            col2.markdown(f"📺 [Vídeo no YouTube]({recipe_data['strYoutube']})")
-        
-        # Ingredientes
-        st.subheader("📋 Ingredientes:")
-        for ing in recipe['ingredients']:
-            match_indicator = "✅" if ing in [i.lower() for i in user_ingredients] else "❌"
-            st.markdown(f"{match_indicator} {ing.capitalize()}")
-        
-        # Instruções
-        st.subheader("👩‍🍳 Instruções:")
-        st.write(recipe_data['strInstructions'])
-
-# ========================================================================
 # Mostrar receita selecionada da barra lateral
 # ========================================================================
 if 'selected_recipe' in st.session_state:
@@ -313,9 +325,12 @@ if 'selected_recipe' in st.session_state:
     
     # Exibir imagem
     if recipe_data.get('strMealThumb'):
-        response_img = requests.get(recipe_data['strMealThumb'])
-        img = Image.open(io.BytesIO(response_img.content))
-        st.image(img, caption=recipe_data['strMeal'], use_column_width=True)
+        try:
+            response_img = requests.get(recipe_data['strMealThumb'])
+            img = Image.open(io.BytesIO(response_img.content))
+            st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+        except:
+            st.warning("Não foi possível carregar a imagem da receita")
     
     st.subheader(f"🍳 {recipe_data['strMeal']}")
     st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")

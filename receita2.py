@@ -97,13 +97,21 @@ def display_recipe(recipe, user_ingredients, is_main=False):
     recipe_data = recipe['data']
     recipe_id = recipe_data['idMeal']
     
-    with st.expander(f"{'🍳' if is_main else '🍲'} {recipe_data['strMeal']}", expanded=is_main):
-        # Exibir imagem da receita
+    # Destacar mais o nome da receita
+    title_html = f"<h3 style='font-size:24px; margin-bottom:10px;'>{recipe_data['strMeal']}</h3>"
+    st.markdown(title_html, unsafe_allow_html=True)
+    
+    with st.expander("", expanded=is_main):
+        # Exibir imagem da receita com tamanho reduzido
         if recipe_data.get('strMealThumb'):
             try:
                 response_img = requests.get(recipe_data['strMealThumb'])
                 img = Image.open(io.BytesIO(response_img.content))
-                st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+                
+                # Reduzir o tamanho da imagem
+                col1, col2, col3 = st.columns([1, 2, 1])
+                with col2:
+                    st.image(img, caption=recipe_data['strMeal'], width=300)
             except:
                 st.warning("Não foi possível carregar a imagem da receita")
         
@@ -113,6 +121,18 @@ def display_recipe(recipe, user_ingredients, is_main=False):
         st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
         st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
         
+        # Sistema de avaliação
+        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
+        new_rating = st.slider(
+            "Avalie esta receita:", 
+            1, 5, current_rating,
+            key=f"rate_{recipe_id}_{is_main}"
+        )
+        
+        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
+            st.session_state.user_ratings[recipe_id] = new_rating
+            st.success("Avaliação salva com sucesso!")
+            st.experimental_rerun()
         
         # Links
         col1, col2 = st.columns(2)
@@ -130,20 +150,13 @@ def display_recipe(recipe, user_ingredients, is_main=False):
         # Instruções
         st.subheader("👩‍🍳 Instruções:")
         st.write(recipe_data['strInstructions'])
-       
-        # Sistema de avaliação
-        current_rating = st.session_state.user_ratings.get(recipe_id, 0)
-        new_rating = st.slider(
-            "Avalie esta receita:", 
-            1, 5, current_rating,
-            key=f"rate_{recipe_id}_{is_main}"
-        )
-        
-        if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
-            st.session_state.user_ratings[recipe_id] = new_rating
-            st.success("Avaliação salva com sucesso!")
-            st.experimental_rerun()
-        
+
+# Função para resetar a visualização
+def go_home():
+    st.session_state.show_random_recipes = False
+    if 'selected_recipe' in st.session_state:
+        del st.session_state.selected_recipe
+    st.experimental_rerun()
 
 # ========================================================================
 # Inicialização do aplicativo
@@ -162,11 +175,23 @@ if 'show_random_recipes' not in st.session_state:
 # ========================================================================
 # Interface Principal
 # ========================================================================
-st.title("🍳 Experiência Chef - Descubra Receitas por Ingredientes ou País")
+
+# Botão Home no topo
+col1, col2 = st.columns([5, 1])
+with col1:
+    st.title("🍳 Experiência Chef - Descubra Receitas por Ingredientes ou País")
+with col2:
+    if st.button("🏠 Home", use_container_width=True):
+        go_home()
+
 st.markdown("Encontre receitas perfeitas usando seus ingredientes ou explore novas culturas culinárias!")
 
 # Barra lateral 
 with st.sidebar:
+    # Botão Home na barra lateral também
+    if st.button("🏠 Voltar ao Início", use_container_width=True):
+        go_home()
+        
     st.header("📚 Receitas Principais Salvas")
     st.caption("Suas últimas receitas principais pesquisadas")
     
@@ -174,7 +199,8 @@ with st.sidebar:
         st.info("Nenhuma receita salva ainda. Faça uma busca para começar!")
     else:
         for i, recipe in enumerate(st.session_state.saved_main_recipes):
-            with st.expander(f"{i+1}. {recipe['data']['strMeal']}"):
+            # Destacar mais o nome da receita na barra lateral
+            with st.expander(f"**{recipe['data']['strMeal']}**", expanded=False):
                 st.caption(f"Compatibilidade: {recipe['matches']}/{recipe['total']}")
                 st.caption(f"🗂️ {recipe['data'].get('strCategory', 'N/A')}")
                 st.caption(f"🌍 {recipe['data'].get('strArea', 'N/A')}")
@@ -205,13 +231,22 @@ with st.sidebar:
 # Seção de Descoberta por País
 # ========================================================================
 if st.session_state.get('show_random_recipes', False):
+    # Botão Voltar acima da seção
+    if st.button("⬅️ Voltar para a busca principal"):
+        st.session_state.show_random_recipes = False
+        st.experimental_rerun()
+    
     st.subheader(f"🍜 Receitas Típicas de {st.session_state.selected_country}")
     
     if not st.session_state.get('country_recipes'):
         st.warning(f"Não encontramos receitas de {st.session_state.selected_country}.")
     else:
         for recipe in st.session_state.country_recipes:
-            with st.expander(f"🍲 {recipe['strMeal']}", expanded=True):
+            # Destacar mais o nome da receita
+            title_html = f"<h3 style='font-size:22px; margin-bottom:10px;'>{recipe['strMeal']}</h3>"
+            st.markdown(title_html, unsafe_allow_html=True)
+            
+            with st.expander("Ver Receita", expanded=True):
                 try:
                     # Buscar detalhes completos da receita
                     response = requests.get(
@@ -220,12 +255,16 @@ if st.session_state.get('show_random_recipes', False):
                     recipe_data = response.json()['meals'][0]
                     recipe_id = recipe_data['idMeal']
                     
-                    # Exibir imagem
+                    # Exibir imagem com tamanho reduzido
                     if recipe_data.get('strMealThumb'):
                         try:
                             response_img = requests.get(recipe_data['strMealThumb'])
                             img = Image.open(io.BytesIO(response_img.content))
-                            st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+                            
+                            # Centralizar e reduzir imagem
+                            col1, col2, col3 = st.columns([1, 2, 1])
+                            with col2:
+                                st.image(img, caption=recipe_data['strMeal'], width=300)
                         except:
                             st.warning("Não foi possível carregar a imagem da receita")
                     
@@ -272,69 +311,81 @@ if st.session_state.get('show_random_recipes', False):
 # ========================================================================
 # Seção Principal - Busca por Ingredientes
 # ========================================================================
-st.subheader("🔍 Buscar por Ingredientes")
-user_input = st.text_input(
-    "Digite seus ingredientes em inglês (separados por vírgula):",
-    placeholder="Ex: ovo, farinha, açúcar",
-    key="ingredient_input"
-)
+if not st.session_state.get('show_random_recipes', False) and 'selected_recipe' not in st.session_state:
+    st.subheader("🔍 Buscar por Ingredientes")
+    user_input = st.text_input(
+        "Digite seus ingredientes em inglês (separados por vírgula):",
+        placeholder="Ex: ovo, farinha, açúcar",
+        key="ingredient_input"
+    )
 
-# Filtro de país para busca por ingredientes
-country_filter = st.selectbox("Filtrar por país (opcional):", get_areas())
+    # Filtro de país para busca por ingredientes
+    country_filter = st.selectbox("Filtrar por país (opcional):", get_areas())
 
-if st.button("Buscar Receitas") or user_input:
-    if not user_input:
-        st.warning("Por favor, digite pelo menos um ingrediente!")
-        st.stop()
-    
-    user_ingredients = [ing.strip() for ing in user_input.split(',') if ing.strip()]
-    
-    with st.spinner("Procurando receitas incríveis para você..."):
-        recipes = get_recipes_by_matching_ingredients(user_ingredients, country_filter)
-    
-    if not recipes:
-        st.error("Nenhuma receita encontrada com esses ingredientes. Tente outros ingredientes!")
-    else:
-        # Salva a receita principal na session state
-        main_recipe = recipes[0]
-        if main_recipe not in st.session_state.saved_main_recipes:
-            st.session_state.saved_main_recipes.insert(0, main_recipe)
-        st.session_state.saved_main_recipes = st.session_state.saved_main_recipes[:10]
+    if st.button("Buscar Receitas") or user_input:
+        if not user_input:
+            st.warning("Por favor, digite pelo menos um ingrediente!")
+            st.stop()
         
-        st.success(f"🔍 Encontradas {len(recipes)} receitas!")
+        user_ingredients = [ing.strip() for ing in user_input.split(',') if ing.strip()]
         
-        # Mostra a receita principal
-        st.subheader("🥇 Receita Principal")
-        display_recipe(main_recipe, user_ingredients, is_main=True)
+        with st.spinner("Procurando receitas incríveis para você..."):
+            recipes = get_recipes_by_matching_ingredients(user_ingredients, country_filter)
         
-        # Mostra mais duas opções
-        if len(recipes) > 1:
-            st.subheader("🥈 Outras Opções")
-            cols = st.columns(2)
+        if not recipes:
+            st.error("Nenhuma receita encontrada com esses ingredientes. Tente outros ingredientes!")
+        else:
+            # Salva a receita principal na session state
+            main_recipe = recipes[0]
+            if main_recipe not in st.session_state.saved_main_recipes:
+                st.session_state.saved_main_recipes.insert(0, main_recipe)
+            st.session_state.saved_main_recipes = st.session_state.saved_main_recipes[:10]
             
-            for idx in range(1, min(3, len(recipes))):
-                with cols[idx-1]:
-                    display_recipe(recipes[idx], user_ingredients)
+            st.success(f"🔍 Encontradas {len(recipes)} receitas!")
+            
+            # Mostra a receita principal
+            st.subheader("🥇 Receita Principal")
+            display_recipe(main_recipe, user_ingredients, is_main=True)
+            
+            # Mostra mais duas opções
+            if len(recipes) > 1:
+                st.subheader("🥈 Outras Opções")
+                cols = st.columns(2)
+                
+                for idx in range(1, min(3, len(recipes))):
+                    with cols[idx-1]:
+                        display_recipe(recipes[idx], user_ingredients)
 
 # ========================================================================
 # Mostrar receita selecionada da barra lateral
 # ========================================================================
 if 'selected_recipe' in st.session_state:
-    st.subheader("📖 Receita Selecionada")
+    # Botão Voltar acima da receita
+    if st.button("⬅️ Voltar para a lista de receitas"):
+        del st.session_state.selected_recipe
+        st.experimental_rerun()
+    
     recipe = st.session_state.selected_recipe
     recipe_data = recipe['data']
     recipe_id = recipe_data['idMeal']
     
-    # Exibir imagem
+    # Destacar mais o nome da receita
+    title_html = f"<h2 style='font-size:28px; margin-bottom:15px;'>{recipe_data['strMeal']}</h2>"
+    st.markdown(title_html, unsafe_allow_html=True)
+    
+    # Exibir imagem com tamanho reduzido
     if recipe_data.get('strMealThumb'):
         try:
             response_img = requests.get(recipe_data['strMealThumb'])
             img = Image.open(io.BytesIO(response_img.content))
-            st.image(img, caption=recipe_data['strMeal'], use_container_width=True)  # Corrigido aqui
+            
+            # Centralizar e reduzir imagem
+            col1, col2, col3 = st.columns([1, 3, 1])
+            with col2:
+                st.image(img, width=350)
         except:
             st.warning("Não foi possível carregar a imagem da receita")
     
-    st.subheader(f"🍳 {recipe_data['strMeal']}")
     st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
     st.progress(recipe['matches'] / recipe['total'])
     
@@ -374,10 +425,6 @@ if 'selected_recipe' in st.session_state:
     # Metadados
     st.caption(f"🗂️ Categoria: {recipe_data.get('strCategory', 'N/A')}")
     st.caption(f"🌍 Cozinha: {recipe_data.get('strArea', 'N/A')}")
-    
-    # Botão para voltar
-    if st.button("Voltar para os resultados"):
-        del st.session_state.selected_recipe
 
 # ========================================================================
 # Rodapé

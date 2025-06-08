@@ -111,7 +111,7 @@ def display_recipe(recipe, user_ingredients, is_main=False):
                 # Reduzir o tamanho da imagem
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
-                    st.image(img, caption=recipe_data['strMeal'], width=200)
+                    st.image(img, caption=recipe_data['strMeal'], width=500)
             except:
                 st.warning("Não foi possível carregar a imagem da receita")
 

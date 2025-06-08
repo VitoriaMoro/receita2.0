@@ -332,7 +332,7 @@ if 'selected_recipe' in st.session_state:
         except:
             st.warning("Não foi possível carregar a imagem da receita")
     
-    st.subheader(f"🍳 {recipe_data['strMeal']}")
+    st.header(f"🍳 {recipe_data['strMeal']}")
     st.caption(f"🎯 Compatibilidade: {recipe['matches']}/{recipe['total']} ingredientes")
     st.progress(recipe['matches'] / recipe['total'])
     

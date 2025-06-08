@@ -111,7 +111,7 @@ def display_recipe(recipe, user_ingredients, is_main=False):
                 # Reduzir o tamanho da imagem
                 col1, col2, col3 = st.columns([1, 2, 1])
                 with col2:
-                    st.image(img, caption=recipe_data['strMeal'], width=300)
+                    st.image(img, caption=recipe_data['strMeal'], width=240)
             except:
                 st.warning("Não foi possível carregar a imagem da receita")
         
@@ -132,7 +132,7 @@ def display_recipe(recipe, user_ingredients, is_main=False):
         if st.button("Salvar Avaliação", key=f"btn_rate_{recipe_id}_{is_main}"):
             st.session_state.user_ratings[recipe_id] = new_rating
             st.success("Avaliação salva com sucesso!")
-            st.experimental_rerun()
+            st.rerun()
         
         # Links
         col1, col2 = st.columns(2)
@@ -234,7 +234,7 @@ if st.session_state.get('show_random_recipes', False):
     # Botão Voltar acima da seção
     if st.button("⬅️ Voltar para a busca principal"):
         st.session_state.show_random_recipes = False
-        st.experimental_rerun()
+        st.rerun()
     
     st.subheader(f"🍜 Receitas Típicas de {st.session_state.selected_country}")
     
@@ -296,7 +296,7 @@ if st.session_state.get('show_random_recipes', False):
                     if st.button("Salvar Avaliação", key=f"save_{recipe_id}"):
                         st.session_state.user_ratings[recipe_id] = new_rating
                         st.success("Avaliação salva com sucesso!")
-                        st.experimental_rerun()
+                        st.rerun()
                     
                     # Links
                     col1, col2 = st.columns(2)
@@ -363,7 +363,7 @@ if 'selected_recipe' in st.session_state:
     # Botão Voltar acima da receita
     if st.button("⬅️ Voltar para a lista de receitas"):
         del st.session_state.selected_recipe
-        st.experimental_rerun()
+        st.rerun()
     
     recipe = st.session_state.selected_recipe
     recipe_data = recipe['data']

@@ -178,22 +178,15 @@ if 'show_random_recipes' not in st.session_state:
 # Interface Principal
 # ========================================================================
 
-# Botão Home no topo
-col1, col2 = st.columns([5, 1])
+
 with col1:
     st.title("🍳 Experiência Chef - Descubra Receitas por Ingredientes ou País")
-with col2:
-    if st.button("🏠 Home", use_container_width=True):
-        go_home()
 
 st.markdown("Encontre receitas perfeitas usando seus ingredientes ou explore novas culturas culinárias!")
 
 # Barra lateral 
 with st.sidebar:
-    # Botão Home na barra lateral também
-    if st.button("🏠 Voltar ao Início", use_container_width=True):
-        go_home()
-        
+
     st.header("📚 Receitas Principais Salvas")
     st.caption("Suas últimas receitas principais pesquisadas")
     

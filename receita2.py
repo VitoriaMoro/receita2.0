@@ -207,7 +207,7 @@ with st.sidebar:
     st.markdown("---")
     
     # Seção "Receitas Salvas"
-    st.header("📚 Receitas Principais Salvas")
+    st.header("📚 Receitas Pesquisadas")
     st.caption("Suas últimas receitas pesquisadas")
 
     if not st.session_state.saved_main_recipes:

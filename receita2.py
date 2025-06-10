@@ -3,16 +3,11 @@ import requests
 from PIL import Image
 import io
 from deep_translator import GoogleTranslator 
-from functools import lru_cache  # Adicionado para cache de traduções
 
-# Configuração do tradutor com cache
-@lru_cache(maxsize=1000)
-def translator_pt_en(text):
-    return GoogleTranslator(source='pt', target='en').translate(text)
-
-@lru_cache(maxsize=1000)
-def translator_en_pt(text):
-    return GoogleTranslator(source='en', target='pt').translate(text)
+# Configuração do tradutor
+translator_pt_en = lambda text: GoogleTranslator(source='pt', target='en').translate(text)
+translator_en_pt = lambda text: GoogleTranslator(source='en', target='pt').translate(text)
+session = requests.Session()
 
 session = requests.Session()
 

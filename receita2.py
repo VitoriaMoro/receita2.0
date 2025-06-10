@@ -2,15 +2,13 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
-from deep_translator import GoogleTranslator  # Adicionado para tradução
+from deep_translator import GoogleTranslator 
 
 # Configuração do tradutor
 translator_pt_en = lambda text: GoogleTranslator(source='pt', target='en').translate(text)
 translator_en_pt = lambda text: GoogleTranslator(source='en', target='pt').translate(text)
 session = requests.Session()
-# ========================================================================
-# Funções auxiliares
-# ========================================================================
+
 
 # Função para traduzir dados de receitas
 def translate_recipe_data(recipe_data):
@@ -195,9 +193,8 @@ def go_home():
         del st.session_state.selected_recipe
     st.rerun()
 
-# ========================================================================
+
 # Inicialização do aplicativo
-# ========================================================================
 
 st.set_page_config(
     page_title="ChefAI - Encontre Receitas",
@@ -218,9 +215,8 @@ if 'show_random_recipes' not in st.session_state:
 if 'all_recipes_data' not in st.session_state:
     st.session_state.all_recipes_data = {}
 
-# ========================================================================
-# Interface Principal
-# ========================================================================
+
+# Interface
 
 col1, col2 = st.columns([5, 1])
 with col1:
@@ -231,9 +227,8 @@ with col2:
 
 st.markdown("Encontre receitas perfeitas com seus ingredientes ou explore novas culturas!")
 
-# ========================================================================
-# Barra Lateral (Sidebar)
-# ========================================================================
+
+# Barra Lateral 
 
 with st.sidebar:
     if st.button("🏠 Voltar ao Início", use_container_width=True):
@@ -305,9 +300,7 @@ with st.sidebar:
                             st.session_state.selected_recipe = recipe_data_obj
                             st.rerun()
 
-# ========================================================================
-# Lógica de Exibição de Conteúdo
-# ========================================================================
+
 
 # 1. Mostrar Receitas de Países
 if st.session_state.get('show_random_recipes', False):
@@ -464,8 +457,6 @@ else:
                      with cols[idx-1]:
                          display_recipe(recipes[idx], user_ingredients)
 
-# ========================================================================
-# Rodapé
-# ========================================================================
+
 st.markdown("---")
 st.markdown("Desenvolvido usando [TheMealDB API](https://www.themealdb.com/)")

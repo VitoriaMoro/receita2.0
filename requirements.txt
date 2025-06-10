@@ -1,3 +1,2 @@
-streamlit 
 Image
 deep-translator

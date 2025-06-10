@@ -2,11 +2,11 @@ import streamlit as st
 import requests
 from PIL import Image
 import io
-from deep_translator import GoogleTranslator 
+from deep_translator import Translator 
 
 # Configuração do tradutor
-translator_pt_en = lambda text: GoogleTranslator(source='pt', target='en').translate(text)
-translator_en_pt = lambda text: GoogleTranslator(source='en', target='pt').translate(text)
+translator_pt_en = lambda text: Translator(source='pt', target='en').translate(text)
+translator_en_pt = lambda text: Translator(source='en', target='pt').translate(text)
 session = requests.Session()
 
 session = requests.Session()

@@ -19,12 +19,17 @@ def translate_recipe_data(recipe_data):
         recipe_data['strCategory'] = translator_en_pt(recipe_data.get('strCategory', ''))
         recipe_data['strArea'] = translator_en_pt(recipe_data.get('strArea', ''))
         recipe_data['strInstructions'] = translator_en_pt(recipe_data.get('strInstructions', ''))
+        recipe_data['strMeasure'] = translator_en_pt(recipe_data.get('strMeasure', ''))
         
         # Traduz ingredientes
         for i in range(1, 21):
             ingredient_key = f'strIngredient{i}'
+            measure_key = f'strMeasure{i}'
             if recipe_data.get(ingredient_key):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
+            if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
+                recipe_data[measure_key] = translator_en_pt(recipe_data[measure_key])
+        
                 
         return recipe_data
     except Exception as e:

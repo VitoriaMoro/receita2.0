@@ -29,7 +29,12 @@ def translate_recipe_data(recipe_data):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
             if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
                 recipe_data[measure_key] = translator_en_pt(recipe_data[measure_key])
-        
+                measure_text = measure_text.replace('tbs', 'colher de sopa')
+                measure_text = measure_text.replace('TBS', 'colher de sopa')
+                measure_text = measure_text.replace('TBSP', 'colheres de sopa')
+                measure_text = measure_text.replace('Tbsp', 'colheres de sopa')
+                measure_text = measure_text.replace('tbsp', 'colheres de sopa')
+
                 
         return recipe_data
     except Exception as e:

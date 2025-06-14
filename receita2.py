@@ -1,4 +1,4 @@
-import streamlit as stMore actions
+import streamlit 
 import requests
 from PIL import Image
 import io

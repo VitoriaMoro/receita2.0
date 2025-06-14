@@ -205,8 +205,10 @@ def go_home():
 st.set_page_config(
     page_title="ChefAI - Encontre Receitas",
     page_icon="🍳",
+    page_image="Exp Chef.png",
     layout="centered",
     initial_sidebar_state="expanded"
+    
 )
 
 if 'saved_main_recipes' not in st.session_state:

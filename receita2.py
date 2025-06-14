@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit as stMore actions
 import requests
 from PIL import Image
 import io
@@ -20,19 +20,17 @@ def translate_recipe_data(recipe_data):
         recipe_data['strArea'] = translator_en_pt(recipe_data.get('strArea', ''))
         recipe_data['strInstructions'] = translator_en_pt(recipe_data.get('strInstructions', ''))
         recipe_data['strMeasure'] = translator_en_pt(recipe_data.get('strMeasure', ''))
-        
-       # Traduz ingredientes
+
+        # Traduz ingredientes
         for i in range(1, 21):
             ingredient_key = f'strIngredient{i}'
             measure_key = f'strMeasure{i}'
             if recipe_data.get(ingredient_key):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
             if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
-                measure_text = recipe_data[measure_key]
-                measure_text = measure_text.replace('tbs', 'colher de sopa').replace('Tbsp', 'colher de sopa').replace('TBS', 'colher de sopa').replace('tbsp', 'colher de sopa').replace('TBSP', 'colher de sopa')
-                recipe_data[measure_key] = translator_en_pt(measure_text)
+                recipe_data[measure_key] = translator_en_pt(recipe_data[measure_key])
         
-                
+
         return recipe_data
     except Exception as e:
         st.error(f"Erro na tradução: {e}")
@@ -42,7 +40,7 @@ def translate_recipe_data(recipe_data):
 def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes=10):
     # Traduz ingredientes para inglês
     translated_ingredients = [translator_pt_en(ing.lower().strip()) for ing in user_ingredients]
-    
+
     recipe_ids = set()
     for ingredient in translated_ingredients:
         try:
@@ -66,7 +64,7 @@ def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes
                 f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={recipe_id}"
             )
             recipe_data = response.json()['meals'][0]
-            
+
             # Traduz dados da receita para português
             recipe_data = translate_recipe_data(recipe_data)
 
@@ -109,7 +107,7 @@ def get_recipes_by_area(area):
         data = response.json()
         if not data.get('meals'):
             return []
-            
+
         # Obtém detalhes completos e traduz cada receita
         detailed_recipes = []
         for meal in data['meals'][:5]:
@@ -118,7 +116,7 @@ def get_recipes_by_area(area):
             )
             recipe_data = recipe_response.json()['meals'][0]
             detailed_recipes.append(translate_recipe_data(recipe_data))
-        
+
         return detailed_recipes
     except requests.exceptions.RequestException:
         return []
@@ -131,7 +129,7 @@ def get_areas():
         )
         data = response.json()
         areas = ["Todos"] + sorted([area['strArea'] for area in data['meals']])
-        
+
         # Traduz nomes dos países
         translated_areas = ["Todos"]
         for area in areas[1:]:
@@ -139,7 +137,7 @@ def get_areas():
                 translated_areas.append(translator_en_pt(area))
             except:
                 translated_areas.append(area)
-                
+
         return translated_areas
     except requests.exceptions.RequestException:
         return ["Todos"]
@@ -181,7 +179,7 @@ def display_recipe(recipe, user_ingredients, is_main=False):
 
         st.subheader("👩‍🍳 Instruções:")
         st.write(recipe_data['strInstructions'])
-        
+
         current_rating = st.session_state.user_ratings.get(recipe_id, 0)
         new_rating = st.slider(
             "Avalie esta receita:",
@@ -254,18 +252,18 @@ with st.sidebar:
                 country_en = GoogleTranslator(source='pt', target='en').translate(selected_country)
             else:
                 country_en = "All"
-                
+
             st.session_state.country_recipes = get_recipes_by_area(country_en)
         except:
             st.session_state.country_recipes = []
-            
+
         st.session_state.selected_country = selected_country
         if 'selected_recipe' in st.session_state:
             del st.session_state.selected_recipe
         st.rerun()
 
     st.markdown("---")
-    
+
     st.header("📚 Receitas Pesquisadas")
     st.caption("Suas últimas receitas pesquisadas")
 
@@ -328,7 +326,7 @@ if st.session_state.get('show_random_recipes', False):
                         recipe_ingredients = [recipe.get(f'strIngredient{i}', '').strip() 
                                             for i in range(1, 21) 
                                             if recipe.get(f'strIngredient{i}', '').strip()]
-                        
+
                         st.session_state.all_recipes_data[recipe_id] = {
                             'data': recipe,
                             'ingredients': recipe_ingredients,
@@ -443,7 +441,7 @@ else:
                     country_en = None
             except:
                 country_en = None
-                
+
             recipes = get_recipes_by_matching_ingredients(user_ingredients, country_en)
 
         if not recipes:

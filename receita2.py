@@ -466,6 +466,7 @@ else:
                 for idx in range(1, min(3, len(recipes))):
                      with cols[idx-1]:
                          display_recipe(recipes[idx], user_ingredients)
+st.markdown("---")
 
 st.markdown("Experiência Chef: Seu Assistente de Cozinha Inteligente")
 st.markdown("O Experiência Chef é o aplicativo que transforma sua rotina na cozinha, oferecendo inspiração e praticidade."

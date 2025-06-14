@@ -205,7 +205,6 @@ def go_home():
 st.set_page_config(
     page_title="ChefAI - Encontre Receitas",
     page_icon="🍳",
-    image="Exp Chef.png",
     layout="centered",
     initial_sidebar_state="expanded"
     

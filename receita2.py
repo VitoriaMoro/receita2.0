@@ -227,8 +227,8 @@ if 'all_recipes_data' not in st.session_state:
 
 col1, col2 = st.columns([5, 1])
 with col1:
+    st.image("Exp Chef2.png", width=400)
     st.title("🍳 Experiência Chef")
-    st.image("Exp Chef2.png", width=300)
 with col2:
     if st.button("🏠 Home", use_container_width=True):
         go_home()

@@ -233,9 +233,7 @@ with col2:
         go_home()
 
 
-st.markdown("Cansado de não saber o que cozinhar? ou de fazer sempre as mesmas coisas?
-O Experiência Chef é a solução perfeita, um assistente culinário inteligente que transforma a maneira como você descobre e interage com a comida. 
-As possibilidades são vastas e pensadas para inspirar tanto o cozinheiro iniciante quanto o mais experiente.")
+st.markdown("Cansado de não saber o que cozinhar? ou de fazer sempre as mesmas coisas?")
 
 
 # Barra Lateral 

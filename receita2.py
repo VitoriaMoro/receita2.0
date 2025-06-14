@@ -209,7 +209,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
     
 )
-st.image("Exp Chef.png")
+st.image("Exp Chef.png",width=300)
 
 if 'saved_main_recipes' not in st.session_state:
     st.session_state.saved_main_recipes = []

@@ -27,9 +27,7 @@ def translate_recipe_data(recipe_data):
             measure_key = f'strMeasure{i}'
             if recipe_data.get(ingredient_key):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
-            if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
-                measure_text = recipe_data[measure_key]
-                measure_text = standardize_measures(measure_text)
+            if recipe_data.get(measure_key) and recipe_data[measure_key].strip()
                 recipe_data[measure_key] = translator_en_pt(measure_text)
         
                 
@@ -37,25 +35,7 @@ def translate_recipe_data(recipe_data):
     except Exception as e:
         st.error(f"Erro na tradução: {e}")
         return recipe_data
-def standardize_measures(text):
-    if not text:
-        return text
-    
-    # Lista de termos para substituir (case-insensitive)
-    terms_to_replace = {
-        r'\btbs\b': 'colher de sopa',
-        r'\bTbsp\b': 'colheres de sopa',
-        r'\bTBS\b': 'colher de sopa',
-        r'\btbps\b': 'colheres de sopa',
-        r'\bTBSP\b': 'colheres de sopa',
-        r'\btablespoons?\b': 'colher de sopa',
-    }
-    
-    # Aplicar todas as substituições
-    for pattern, replacement in terms_to_replace.items():
-        text = re.sub(pattern, replacement, text, flags=re.IGNORECASE)
-    
-    return text
+
 # Função para buscar receitas por ingredientes
 def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes=10):
     # Traduz ingredientes para inglês

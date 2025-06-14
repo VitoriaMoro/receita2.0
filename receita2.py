@@ -233,7 +233,9 @@ with col2:
         go_home()
 
 
-st.markdown("Encontre receitas perfeitas com seus ingredientes ou explore novas culturas!")
+st.markdown("Cansado de se perguntar "o que cozinhar hoje?" ou de fazer sempre as mesmas coisas? 
+O Experiência Chef é a solução perfeita, um assistente culinário inteligente que transforma a maneira como você descobre e interage com a comida. 
+As possibilidades são vastas e pensadas para inspirar tanto o cozinheiro iniciante quanto o mais experiente.")
 
 
 # Barra Lateral 
@@ -242,7 +244,7 @@ with st.sidebar:
     if st.button("🏠 Voltar ao Início", use_container_width=True):
         go_home()
 
-    st.header("🌍 Descubra por País")
+    st.header("🌍 Descubra Receitas por Nacionalidades")
     area_list = get_areas()
     selected_country = st.selectbox("Escolha um país:", area_list, key="country_select")
 

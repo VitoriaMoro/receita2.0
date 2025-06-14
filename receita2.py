@@ -21,13 +21,15 @@ def translate_recipe_data(recipe_data):
         recipe_data['strInstructions'] = translator_en_pt(recipe_data.get('strInstructions', ''))
         recipe_data['strMeasure'] = translator_en_pt(recipe_data.get('strMeasure', ''))
         
-        # Traduz ingredientes
+       # Traduz ingredientes
         for i in range(1, 21):
             ingredient_key = f'strIngredient{i}'
             measure_key = f'strMeasure{i}'
             if recipe_data.get(ingredient_key):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
             if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
+                measure_text = recipe_data[measure_key]
+                measure_text = measure_text.replace('tbs', 'colher de sopa').replace('Tbsp', 'colher de sopa').replace('TBS', 'colher de sopa').replace('tbsp', 'colher de sopa').replace('TBSP', 'colher de sopa')
                 recipe_data[measure_key] = translator_en_pt(measure_text)
         
                 

@@ -467,6 +467,18 @@ else:
                      with cols[idx-1]:
                          display_recipe(recipes[idx], user_ingredients)
 
+st.markdown("Experiência Chef: Seu Assistente de Cozinha Inteligente")
+st.markdown("O Experiência Chef é o aplicativo que transforma sua rotina na cozinha, oferecendo inspiração e praticidade."
+            "Com ele, você pode:")
+st.markdown("Cozinhar com o que Tem: Digite os ingredientes da sua despensa e encontre receitas compatíveis."
+            "O app mostra um índice de aproveitamento para você escolher a melhor opção e evitar o desperdício.")
+st.markdown("Explorar a Culinária Mundial: Viaje por sabores de diferentes países. Basta escolher uma região"
+            "para descobrir e preparar pratos típicos com instruções em português.")
+st.markdown("Organizar suas Receitas Favoritas: Crie seu livro de receitas digital. Avalie os pratos que você preparou,"
+            "acesse seu histórico de buscas e tenha sempre à mão suas descobertas preferidas.")
+st.markdown("Em resumo, o Experiência Chef é uma ferramenta completa que oferece inspiração, praticidade e organização."
+            "Ele transforma ingredientes esquecidos em oportunidades, satisfaz a curiosidade por novas culturas e ajuda "
+            "você a construir um acervo confiável de receitas que realmente funcionam para o seu paladar.")
 
 st.markdown("---")
 st.markdown("Desenvolvido usando [TheMealDB API](https://www.themealdb.com/)")

@@ -27,7 +27,7 @@ def translate_recipe_data(recipe_data):
             measure_key = f'strMeasure{i}'
             if recipe_data.get(ingredient_key):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
-            if recipe_data.get(measure_key) and recipe_data[measure_key].strip()
+            if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
                 recipe_data[measure_key] = translator_en_pt(measure_text)
         
                 

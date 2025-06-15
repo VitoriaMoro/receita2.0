@@ -208,7 +208,7 @@ def go_home():
 # Inicialização do aplicativo
 
 st.set_page_config(
-    page_title="ChefAI - Encontre Receitas",
+    page_title="Experiência Chef - Encontre Receitas",
     page_icon="🍳",
     layout="centered",
     initial_sidebar_state="expanded"

@@ -19,7 +19,6 @@ def translate_recipe_data(recipe_data):
         recipe_data['strCategory'] = translator_en_pt(recipe_data.get('strCategory', ''))
         recipe_data['strArea'] = translator_en_pt(recipe_data.get('strArea', ''))
         recipe_data['strInstructions'] = translator_en_pt(recipe_data.get('strInstructions', ''))
-        recipe_data['strMeasure'] = translator_en_pt(recipe_data.get('strMeasure', ''))
         
         # Traduz ingredientes
         for i in range(1, 21):

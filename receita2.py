@@ -3,22 +3,51 @@ import requests
 from PIL import Image
 import io
 from deep_translator import GoogleTranslator 
+import concurrent.futures
+import time
+from functools import lru_cache
 
-# Configuração do tradutor
-translator_pt_en = lambda text: GoogleTranslator(source='pt', target='en').translate(text)
-translator_en_pt = lambda text: GoogleTranslator(source='en', target='pt').translate(text)
+# Configuração do tradutor com cache
+@lru_cache(maxsize=1000)
+def cached_translator_pt_en(text):
+    return GoogleTranslator(source='pt', target='en').translate(text)
+
+@lru_cache(maxsize=1000)
+def cached_translator_en_pt(text):
+    return GoogleTranslator(source='en', target='pt').translate(text)
+
+translator_pt_en = cached_translator_pt_en
+translator_en_pt = cached_translator_en_pt
+
 session = requests.Session()
 
-session = requests.Session()
+# Cache para requisições de API
+@lru_cache(maxsize=500)
+def cached_api_request(url):
+    try:
+        response = session.get(url, timeout=10)
+        return response.json()
+    except:
+        return None
 
-# Função para traduzir dados de receitas
+# Função para traduzir dados de receitas (otimizada)
 def translate_recipe_data(recipe_data):
     try:
-        # Traduz campos principais
-        recipe_data['strMeal'] = translator_en_pt(recipe_data.get('strMeal', ''))
-        recipe_data['strCategory'] = translator_en_pt(recipe_data.get('strCategory', ''))
-        recipe_data['strArea'] = translator_en_pt(recipe_data.get('strArea', ''))
-        recipe_data['strInstructions'] = translator_en_pt(recipe_data.get('strInstructions', ''))
+        # Tradução em batch para campos principais
+        fields_to_translate = [
+            recipe_data.get('strMeal', ''),
+            recipe_data.get('strCategory', ''),
+            recipe_data.get('strArea', ''),
+            recipe_data.get('strInstructions', '')
+        ]
+        
+        # Traduz todos os campos principais de uma vez
+        translated_fields = GoogleTranslator(source='en', target='pt').translate_batch(fields_to_translate)
+        
+        recipe_data['strMeal'] = translated_fields[0]
+        recipe_data['strCategory'] = translated_fields[1]
+        recipe_data['strArea'] = translated_fields[2]
+        recipe_data['strInstructions'] = translated_fields[3]
         
         # Traduz e ajusta medidas
         for i in range(1, 21):
@@ -29,7 +58,6 @@ def translate_recipe_data(recipe_data):
                 recipe_data[ingredient_key] = translator_en_pt(recipe_data[ingredient_key])
             
             if recipe_data.get(measure_key) and recipe_data[measure_key].strip():
-                # Traduz e aplica substituições diretamente
                 measure_text = translator_en_pt(recipe_data[measure_key])
                 
                 # Aplica substituições de unidades
@@ -44,7 +72,16 @@ def translate_recipe_data(recipe_data):
                     'cup': 'xícara',
                     'cups': 'xícaras',
                     'Tblsp': 'colheres de sopa',
-                    'TBLSP': 'colheres de sopa'
+                    'TBLSP': 'colheres de sopa',
+                    'ounce': 'onça',
+                    'ounces': 'onças',
+                    'pound': 'libra',
+                    'pounds': 'libras',
+                    'kg': 'kg',
+                    'g': 'g',
+                    'ml': 'ml',
+                    'liter': 'litro',
+                    'l': 'l'
                 }
                 
                 for eng, pt in replacements.items():
@@ -57,66 +94,82 @@ def translate_recipe_data(recipe_data):
         st.error(f"Erro na tradução: {e}")
         return recipe_data
 
-# Função para buscar receitas por ingredientes
+# Função para buscar detalhes de uma receita (usada no paralelismo)
+def fetch_recipe_details(recipe_id):
+    try:
+        response = cached_api_request(f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={recipe_id}")
+        if not response or 'meals' not in response or not response['meals']:
+            return None
+            
+        recipe_data = response['meals'][0]
+        return recipe_id, recipe_data
+    except:
+        return None
+
+# Função para buscar receitas por ingredientes (otimizada)
 def get_recipes_by_matching_ingredients(user_ingredients, area=None, max_recipes=10):
     # Traduz ingredientes para inglês
     translated_ingredients = [translator_pt_en(ing.lower().strip()) for ing in user_ingredients]
     
     recipe_ids = set()
     for ingredient in translated_ingredients:
-        try:
-            response = session.get(
-                f"https://www.themealdb.com/api/json/v1/1/filter.php?i={ingredient}"
-            )
-            data = response.json()
-            if data.get('meals'):
-                for meal in data['meals']:
-                    recipe_ids.add(meal['idMeal'])
-        except (requests.exceptions.RequestException, TypeError):
-            continue
+        data = cached_api_request(f"https://www.themealdb.com/api/json/v1/1/filter.php?i={ingredient}")
+        if data and data.get('meals'):
+            for meal in data['meals']:
+                recipe_ids.add(meal['idMeal'])
 
     if not recipe_ids:
         return []
 
+    # Busca paralela de detalhes das receitas
     recipes = []
-    for recipe_id in list(recipe_ids)[:50]:
-        try:
-            response = session.get(
-                f"https://www.themealdb.com/api/json/v1/1/lookup.php?i={recipe_id}"
-            )
-            recipe_data = response.json()['meals'][0]
-            
-            # Traduz dados da receita para português
-            recipe_data = translate_recipe_data(recipe_data)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        future_to_id = {executor.submit(fetch_recipe_details, rid): rid for rid in list(recipe_ids)[:50]}
+        for future in concurrent.futures.as_completed(future_to_id):
+            result = future.result()
+            if result:
+                recipe_id, recipe_data = result
+                # Verifica se já está no cache global
+                if recipe_id in st.session_state.all_recipes_data:
+                    recipe_obj = st.session_state.all_recipes_data[recipe_id]
+                    if not area or area == "Todos" or recipe_obj['data'].get('strArea') == area:
+                        recipes.append(recipe_obj)
+                else:
+                    # Processa nova receita
+                    recipe_data = translate_recipe_data(recipe_data)
+                    
+                    if area and area != "Todos" and recipe_data.get('strArea') != area:
+                        continue
+                    
+                    recipe_ingredients = []
+                    for i in range(1, 21):
+                        ingredient_key = f'strIngredient{i}'
+                        if recipe_data.get(ingredient_key) and recipe_data[ingredient_key].strip():
+                            ingredient = recipe_data[ingredient_key].strip().lower()
+                            recipe_ingredients.append(ingredient)
+                    
+                    # Algoritmo de matching melhorado
+                    user_ing_lower = [ing.lower() for ing in user_ingredients]
+                    matches = 0
+                    for ing in recipe_ingredients:
+                        # Verifica correspondência parcial e sinônimos comuns
+                        if any(orig_ing in ing for orig_ing in user_ing_lower) or \
+                           any(ing in orig_ing for orig_ing in user_ing_lower):
+                            matches += 1
+                    
+                    total_ingredients = len(recipe_ingredients)
+                    
+                    recipe_object = {
+                        'data': recipe_data,
+                        'ingredients': recipe_ingredients,
+                        'matches': matches,
+                        'total': total_ingredients
+                    }
+                    recipes.append(recipe_object)
+                    st.session_state.all_recipes_data[recipe_id] = recipe_object
 
-            if area and area != "Todos" and recipe_data.get('strArea') != area:
-                continue
-
-            recipe_ingredients = []
-            for i in range(1, 21):
-                ingredient_key = f'strIngredient{i}'
-                if recipe_data.get(ingredient_key) and recipe_data[ingredient_key].strip():
-                    ingredient = recipe_data[ingredient_key].strip().lower()
-                    recipe_ingredients.append(ingredient)
-
-            # Verifica correspondência com ingredientes originais (em português)
-            matches = sum(1 for ing in recipe_ingredients 
-                         if any(orig_ing.lower() in ing for orig_ing in user_ingredients))
-            total_ingredients = len(recipe_ingredients)
-
-            recipe_object = {
-                'data': recipe_data,
-                'ingredients': recipe_ingredients,
-                'matches': matches,
-                'total': total_ingredients
-            }
-            recipes.append(recipe_object)
-            st.session_state.all_recipes_data[recipe_id] = recipe_object
-
-        except (requests.exceptions.RequestException, KeyError, IndexError, TypeError) as e:
-            continue
-
-    recipes.sort(key=lambda x: x['matches'], reverse=True)
+    # Ordena por compatibilidade e limita resultados
+    recipes.sort(key=lambda x: (x['matches']/x['total'], x['matches']), reverse=True)
     return recipes[:max_recipes]
 
 # Função para buscar receitas por país

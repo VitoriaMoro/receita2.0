@@ -42,7 +42,7 @@ def translate_recipe_data(recipe_data):
                     'tsp': 'colher de chá',
                     'TSP': 'colher de chá',
                     'cup': 'xícara',
-                    'cups': 'xícaras'
+                    'cups': 'xícaras',
                     'Tblsp': 'colheres de sopa'
                 }
                 
